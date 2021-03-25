@@ -10,8 +10,9 @@ pub enum Error {
     IOError(io::Error),
     MissingRequiredArgument,
     InterfaceError(String),
-    HttpRequestError(curl::Error),
-    // InternalError(String),
+    HttpRequestError(ureq::Error),
+    InternalError(String),
+    InterfaceFilterError(String),
 }
 
 impl std::fmt::Display for Error {
@@ -29,7 +30,7 @@ impl From<io::Error> for Error {
 }
 
 impl From<ureq::Error> for Error {
-    fn from(error: curl::Error) -> Self {
+    fn from(error: ureq::Error) -> Self {
         Error::HttpRequestError(error)
     }
 }
