@@ -25,7 +25,7 @@ pub enum Cmds {
     Add {
         /// Subdomain
         #[structopt(short, long = "sub")]
-        sub_domain: Option<String>,
+        sub_domain: String,
         /// Record type
         #[structopt(short = "t", long = "type")]
         record_type: String,
@@ -47,12 +47,15 @@ pub enum Cmds {
         /// Length
         #[structopt(short, long)]
         length: Option<i32>,
+        /// Subdomain
+        #[structopt(short, long)]
+        sub_domain: Option<String>,
     },
     #[structopt(about = "Modify a record")]
     Modify {
         /// Record ID
         #[structopt(short = "i", long = "id")]
-        record_id: String,
+        record_id: i32,
         /// Subdomain
         #[structopt(short, long = "sub")]
         sub_domain: Option<String>,
@@ -73,7 +76,7 @@ pub enum Cmds {
     Delete {
         /// Record ID
         #[structopt(short = "i", long = "id")]
-        record_id: String,
+        record_id: i32,
     }
 }
 
@@ -92,12 +95,12 @@ impl Args {
 
         match &args.cmd {
             Cmds::Add{value, interface, ..} => {
-                if (value.is_none() && interface.is_none()) {
+                if value.is_none() && interface.is_none() {
                     return Err(missing_if_or_value());
                 }
             },
             Cmds::Modify{value, interface, ..} => {
-                if (value.is_none() && interface.is_none()) {
+                if value.is_none() && interface.is_none() {
                     return Err(missing_if_or_value());
                 }
             },

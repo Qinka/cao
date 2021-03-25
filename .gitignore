@@ -12,3 +12,5 @@ Cargo.lock
 # VS Code
 .vscode
 
+# Ignore
+.ignore
