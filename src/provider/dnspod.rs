@@ -18,13 +18,19 @@ impl DnsProvider for Provider {
     }
     fn add_record(&self, sub_domain: String, record_type: String, record_line: String, value: String) -> Result<i32, Error> {
 
+        let mut easy = Easy::new();
+        easy.url("https://dnsapi.cn/Record.Create")?;
+
+
+
+
         let record_line = if record_line.chars().all(char::is_numeric) {
                 ("record_line_id", record_line.as_str())
             } else {
                 ("record_line", record_line.as_str())
             };
 
-        let result: Value = ureq::post("https://dnsapi.cn/Record.Create")
+        let result: Value = ureq::post()
             .set("User-Agent", "cao, Johann Li <me@qinka.pro>")
             .send_form(&[
                 ("login_token", self.key.as_str()),
