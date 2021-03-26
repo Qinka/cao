@@ -100,8 +100,6 @@ impl DnsProvider for Provider {
                     let id = if let Value::String(id) = &v["id"] {
                             id.parse::<i32>().unwrap_or(-1)
                         } else { -2 };
-                    let sub_domain = v["name"].as_str()?;
-
                     Some(super::interface::Record{
                         id: id,
                         sub_domain: String::from(v["name"].as_str()?),
@@ -208,7 +206,7 @@ mod test {
         use std::thread::sleep;
         use std::time;
 
-        let sleep_time = time::Duration::from_secs(20);
+        let sleep_time = time::Duration::from_secs(30);
 
         let domain = var("DNSPOD_TEST_DOMAIN")
             .expect("Need environment variable: DNSPOD_TEST_DOMAIN");
@@ -225,8 +223,8 @@ mod test {
         });
         let mut resolver_opt = ResolverOpts::default();
         resolver_opt.attempts = 10;
-        resolver_opt.negative_max_ttl = Some(time::Duration::from_secs(1));
-        let mut resolver = Resolver::new(ResolverConfig::default(), resolver_opt).unwrap();
+        resolver_opt.negative_max_ttl = Some(time::Duration::from_micros(1000));
+        let resolver = Resolver::new(ResolverConfig::default(), resolver_opt).unwrap();
 
         let provider = Provider{
             key: var("DNSPOD_TEST_TOKEN").expect("Need environment variable: DNSPOD_TEST_TOKEN"),
@@ -238,8 +236,7 @@ mod test {
         let response = resolver.lookup_ip(full_domain.as_str());
         println!("1. {:?}", response);
         if response.is_ok() {
-            let address = response.iter().next().expect("no addresses returned!");
-            println!("1.1. {:?}", address);
+            // let address = response.iter().next().expect("no addresses returned!");
             panic!("Should clean test domain before the test! {:?}", response);
         }
 
@@ -249,7 +246,7 @@ mod test {
 
         sleep(sleep_time);
 
-        let mut response = resolver.lookup_ip(full_domain.as_str()).unwrap();
+        let response = resolver.lookup_ip(full_domain.as_str()).unwrap();
         println!("2. {:?}", response);
         let address = response.iter().next().expect("no addresses returned!");
         assert_eq!(address, IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)));
@@ -268,13 +265,15 @@ mod test {
                 r_line: String::from("默认"),
             });
 
+        sleep(sleep_time);
+
         provider
             .modify_record(id, None, String::from("A"), String::from("0"), String::from("2.3.4.5"))
             .unwrap();
 
         sleep(sleep_time);
 
-        let mut response = resolver.lookup_ip(full_domain.as_str()).unwrap();
+        let response = resolver.lookup_ip(full_domain.as_str()).unwrap();
         let address = response.iter().next().expect("no addresses returned!");
         assert_eq!(address, IpAddr::V4(Ipv4Addr::new(2, 3, 4, 5)));
 

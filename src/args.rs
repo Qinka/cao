@@ -3,25 +3,35 @@ use structopt::clap;
 
 #[derive(Debug, StructOpt, PartialEq)]
 #[structopt(name = "cao", about = "IP Update")]
-pub struct Args {
-    /// DNS API Provider.
-    /// Only DNSPOD now.
-    #[structopt(short, long)]
-    pub provider: String,
-    /// Token in file.
-    /// The file only contains the token.
-    #[structopt(short, long)]
-    pub key: String,
-    /// Domain
-    #[structopt(short, long)]
-    pub domain: String,
-    /// sub command
-    #[structopt(subcommand)]
-    pub cmd: Cmds,
+pub enum Args {
+    #[structopt(about = "Record operation")]
+    Record {
+        /// DNS API Provider.
+        /// Only DNSPOD now.
+        #[structopt(short, long)]
+        provider: String,
+        /// Token in file.
+        /// The file only contains the token.
+        #[structopt(short, long)]
+        key: String,
+        /// Domain
+        #[structopt(short, long)]
+        domain: String,
+        /// sub command
+        #[structopt(subcommand)]
+        cmd: RecordCmds,
+    },
+    #[structopt(about = "List interfaces")]
+    Interface {
+        #[structopt(short, long)]
+        interface: Option<String>
+    },
 }
 
+
+
 #[derive(Debug, StructOpt, PartialEq)]
-pub enum Cmds {
+pub enum RecordCmds {
     #[structopt(about = "Add a record")]
     Add {
         /// Subdomain
@@ -79,11 +89,6 @@ pub enum Cmds {
         #[structopt(short = "i", long = "id")]
         record_id: i32,
     },
-    #[structopt(about = "List interfaces")]
-    Interface {
-        #[structopt(short, long)]
-        interface: Option<String>
-    },
 }
 
 fn missing_if_or_value() -> clap::Error {
@@ -99,20 +104,24 @@ impl Args {
 
         let args = Self::from_args_safe()?;
 
-        match &args.cmd {
-            Cmds::Add{value, interface, ..} => {
-                if value.is_none() && interface.is_none() {
-                    return Err(missing_if_or_value());
-                }
-            },
-            Cmds::Modify{value, interface, ..} => {
-                if value.is_none() && interface.is_none() {
-                    return Err(missing_if_or_value());
+        match &args {
+            Args::Record{cmd, ..} => {
+                match cmd {
+                    RecordCmds::Add{value, interface, ..} => {
+                        if value.is_none() && interface.is_none() {
+                            return Err(missing_if_or_value());
+                        }
+                    },
+                    RecordCmds::Modify{value, interface, ..} => {
+                        if value.is_none() && interface.is_none() {
+                            return Err(missing_if_or_value());
+                        }
+                    },
+                    _ => {}
                 }
             },
             _ => {}
-        }
-
+        };
         Ok(args)
     }
 }
