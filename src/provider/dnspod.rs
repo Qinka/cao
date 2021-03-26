@@ -206,7 +206,7 @@ mod test {
         use std::thread::sleep;
         use std::time;
 
-        let sleep_time = time::Duration::from_secs(30);
+        let sleep_time = time::Duration::from_secs(60);
 
         let domain = var("DNSPOD_TEST_DOMAIN")
             .expect("Need environment variable: DNSPOD_TEST_DOMAIN");
@@ -268,7 +268,7 @@ mod test {
         sleep(sleep_time);
 
         provider
-            .modify_record(id, None, String::from("A"), String::from("0"), String::from("2.3.4.5"))
+            .modify_record(id, Some(sub_domain.clone()), String::from("A"), String::from("0"), String::from("2.3.4.5"))
             .unwrap();
 
         sleep(sleep_time);
