@@ -78,7 +78,12 @@ pub enum Cmds {
         /// Record ID
         #[structopt(short = "i", long = "id")]
         record_id: i32,
-    }
+    },
+    #[structopt(about = "List interfaces")]
+    Interface {
+        #[structopt(short, long)]
+        interface: Option<String>
+    },
 }
 
 fn missing_if_or_value() -> clap::Error {

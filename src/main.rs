@@ -16,76 +16,60 @@ fn fetch_key(file_name: String) -> Result<String, Error>  {
     f.read_to_string(&mut s)?;
     Ok(String::from(s.trim()))
 }
+fn interface_list(interface: Option<String>) -> Result<Vec<(String, String)>, Error> {
+    use if_addrs::{get_if_addrs};
+
+    if let Some(interface) = interface {
+        let s = interface_ip(interface.clone())?;
+        Ok(vec![(interface, s)])
+    } else {
+        Ok(get_if_addrs()?
+            .into_iter()
+            .map(|i| (i.name, format!("{:?}", i.addr)))
+            .collect()
+        )
+    }
+
+}
 
 fn interface_ip(interface: String) -> Result<String, Error> {
-    use if_addrs::{get_if_addrs, IfAddr};
+    use if_addrs::{get_if_addrs, IfAddr, Interface};
+
+    let result = get_if_addrs()?;
 
     let opts: Vec<&str> = interface.split(',').map(|s| s.trim()).collect();
     let name = opts[0].clone();
 
-    let result = get_if_addrs()?;
-
-    eprintln!("{:?}", result);
-
-    let f: Vec<_> = result
-        .into_iter()
-        .filter_map(|r| {
-            if r.name.eq(name) && !r.is_loopback() {
-                Some(r.addr)
-            } else {
-                None
-            }
-        }).collect();
-
-    if opts.len() >= 2 && opts[1].ne("4") && opts[1].ne("6") {
-        return Err(Error::InterfaceFilterError(format!("Unknown filter {}, should be 4 or 6", opts[1])));
-    }
-
-    let f: Vec<_> = if opts.len() >= 2 {
-        if opts[1].eq("4") {
-            f.into_iter().filter(|ip| {
-                if let IfAddr::V4(_) = ip {
-                    true
-                } else {
-                    false
-                }
-            }).collect()
-        } else if opts[1].eq("6") {
-            f.into_iter().filter(|ip| {
-                if let IfAddr::V6(_) = ip {
-                    true
-                } else {
-                    false
-                }
-            }).collect()
-        } else {
-            f
-        }
-    } else {
-        f
+    let filter_name = |i: Interface| {
+        if i.name.eq(name) && !i.is_loopback() { Some(i.addr) }
+        else { None }
     };
 
-    let f: Vec<_> = f.into_iter().map(|ip| {
-        match ip {
-            IfAddr::V4(ip) => format!("{}", ip.ip),
-            IfAddr::V6(ip) => format!("{}", ip.ip),
-        }
-    }).collect();
-
-    let f: Vec<_> = if opts.len() >= 3 {
-            f.into_iter()
-                .filter(|s| s.starts_with(opts[2]))
-                .collect()
+    let filter_ip_type = if opts.len() >= 2 {
+        if opts[1].eq("4") {
+            |ip: &IfAddr| if let IfAddr::V4(_) = ip { true } else { false }
+        } else if opts[1].eq("6") {
+            |ip: &IfAddr| if let IfAddr::V6(_) = ip { true } else { false }
         } else {
-            f
-        };
-
-    if f.len() > 0 {
-        Ok(f[0].clone())
+            |_: &IfAddr| true
+        }
     } else {
-        Err(Error::InterfaceFilterError(format!("No such interface: {}", interface)))
-    }
+        |_: &IfAddr| true
+    };
 
+    result
+        .into_iter()
+        .filter_map(filter_name)
+        .filter(filter_ip_type)
+        .map(|ip| {
+            match ip {
+                IfAddr::V4(ip) => format!("{}", ip.ip),
+                IfAddr::V6(ip) => format!("{}", ip.ip),
+            }
+        })
+        .filter(|s| !(opts.len() >= 3 && !s.starts_with(opts[2])))
+        .next()
+        .ok_or(Error::InterfaceFilterError(format!("No such interface: {}", interface)))
 }
 
 fn interface_or_value(interface: Option<String>, value: Option<String>) -> Result<String, Error> {
@@ -126,6 +110,11 @@ fn main() -> Result<(), Error> {
                 },
                 Cmds::Delete{record_id} => {
                     provider.delete_record(record_id)?;
+                },
+                Cmds::Interface{interface} => {
+                    for (n, i) in interface_list(interface)? {
+                        eprintln!("{}: {}", n, i);
+                    }
                 },
                 // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
             };

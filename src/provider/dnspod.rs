@@ -96,18 +96,20 @@ impl DnsProvider for Provider {
 
         if result["status"]["code"].is_string() && result["status"]["code"].as_str().unwrap().eq("1") {
             if let Value::Array(list) = &result["records"] {
-                Ok(list.into_iter().map(|v| {
+                Ok(list.into_iter().filter_map(|v| {
                     let id = if let Value::String(id) = &v["id"] {
                             id.parse::<i32>().unwrap_or(-1)
                         } else { -2 };
-                    super::interface::Record{
+                    let sub_domain = v["name"].as_str()?;
+
+                    Some(super::interface::Record{
                         id: id,
-                        sub_domain: v["name"].to_string(), // TODO 这样搞会导致出现引号
-                        value: v["value"].to_string(),
-                        r_type: v["type"].to_string(),
-                        r_line: v["line"].to_string(),
-                    }}
-                ).collect())
+                        sub_domain: String::from(v["name"].as_str()?),
+                        value:  String::from(v["value"].as_str()?),
+                        r_type: String::from(v["type"] .as_str()?),
+                        r_line: String::from(v["line"] .as_str()?),
+                    })
+                }).collect())
             } else {
                 Err(Error::InterfaceError(format!("Failed to parse {:?}", result["status"]["code"])))
             }
