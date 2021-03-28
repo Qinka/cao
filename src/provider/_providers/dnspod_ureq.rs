@@ -97,8 +97,8 @@ pub fn info_record(
     Ok(ureq::post(DNSPOD_INFO_RECORD)
         .set(HTTP_HEADER_USER_AGENT, CAO_USER_AGENT)
         .send_form(&[
-            (CAO_FORM_TOKEN,  domain),
-            (CAO_FORM_DOMAIN, key),
+            (CAO_FORM_DOMAIN,  domain),
+            (CAO_FORM_TOKEN, key),
             (CAO_FORM_RID,    id),
         ])?
         .into_json()?
