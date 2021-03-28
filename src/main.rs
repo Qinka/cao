@@ -25,43 +25,60 @@ fn main() -> Result<(), Error> {
         Err(err) => {
             eprintln!("{}", err);
         },
-        Ok(param) => {
-            match param {
-                Args::Record{provider, key, domain, cmd} => {
-                    let key = fetch_key(key)?;
-                    let provider = build_dns_provider(provider, key, domain)?;
-                    match cmd {
-                        RecordCmds::Add{sub_domain, record_type, record_line, value, interface} => {
-                            let value = interface_or_value(interface, value)?;
-                            eprintln!("value: {}", value);
-                            let id = provider.add_record(sub_domain, record_type, record_line, value)?;
-                            print!("{}", id);
-                        },
-                        RecordCmds::List{offset, length, sub_domain} => {
-                            let records = provider.list_record(offset, length, sub_domain)?;
-                            for record in records {
-                                println!("{}", record);
-                            }
-                        },
-                        RecordCmds::Modify{record_id, sub_domain, record_type, record_line, value, interface} => {
-                            let value = interface_or_value(interface, value)?;
-                            provider.modify_record(record_id, sub_domain, record_type, record_line, value)?;
-                        },
-                        RecordCmds::Delete{record_id} => {
-                            provider.delete_record(record_id)?;
-                        },
-                        // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
-                    }
-                },
-                Args::Interface{interface} => {
-                    for (n, i) in interface_list(interface)? {
-                        eprintln!("{}: {}", n, i);
-                    }
-
+        Ok(param) => { match param {
+            Args::Record{provider, key, domain, cmd} => {
+                let key = fetch_key(key)?;
+                let provider = build_dns_provider(provider, key, domain)?;
+                match cmd {
+                    RecordCmds::Add{
+                        sub_domain, record_type, record_line, value, interface
+                    } => {
+                        let value = interface_or_value(interface, value)?;
+                        eprintln!("value: {}", value);
+                        let id = provider.add_record(
+                            &sub_domain,
+                            &record_type,
+                            &record_line,
+                            &value,
+                        )?;
+                        print!("{}", id);
+                    },
+                    RecordCmds::List{offset, length, sub_domain} => {
+                        let records = provider.list_record(
+                            offset,
+                            length,
+                            sub_domain.as_ref()
+                        )?;
+                        for record in records {
+                            println!("{}", record);
+                        }
+                    },
+                    RecordCmds::Modify{
+                        record_id, sub_domain, record_type, record_line, value, interface
+                    } => {
+                        let value = interface_or_value(interface, value)?;
+                        provider.modify_record(
+                            record_id,
+                            sub_domain.as_ref(),
+                            &record_type,
+                            &record_line,
+                            &value
+                        )?;
+                    },
+                    RecordCmds::Delete{record_id} => {
+                        provider.delete_record(record_id)?;
+                    },
+                    // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
                 }
-                // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
-            };
-        }
+            },
+            Args::Interface{interface} => {
+                for (n, i) in interface_list(interface)? {
+                    eprintln!("{}: {}", n, i);
+                }
+
+            }
+            // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
+        };}
     };
 
     Ok(())
