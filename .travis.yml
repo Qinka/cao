@@ -1,0 +1,16 @@
+dist: bionic
+
+language: rust
+rust:
+  - stable
+  - nightly
+
+jobs:
+  allow_failures:
+    - rust: nightly
+
+cache: cargo
+
+script:
+  - cargo build --verbose
+  - cargo test  --verbose
