@@ -3,6 +3,9 @@ name = "cao"
 version = "0.1.0"
 authors = ["Johann Lee <me@qinka.pro>"]
 edition = "2018"
+license = "AGPL-3.0"
+description = "Update DNS record."
+repository = "https://github.com/qinka/cao"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
