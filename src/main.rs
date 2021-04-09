@@ -47,7 +47,7 @@ fn main() -> Result<(), Error> {
                         let records = provider.list_record(
                             offset,
                             length,
-                            sub_domain.as_ref()
+                            sub_domain.as_deref(),
                         )?;
                         for record in records {
                             println!("{}", record);
@@ -59,7 +59,7 @@ fn main() -> Result<(), Error> {
                         let value = interface_or_value(interface, value)?;
                         provider.modify_record(
                             record_id,
-                            sub_domain.as_ref(),
+                            sub_domain.as_deref(),
                             &record_type,
                             &record_line,
                             &value

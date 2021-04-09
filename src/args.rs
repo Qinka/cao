@@ -104,24 +104,22 @@ impl Args {
 
         let args = Self::from_args_safe()?;
 
-        match &args {
-            Args::Record{cmd, ..} => {
-                match cmd {
-                    RecordCmds::Add{value, interface, ..} => {
-                        if value.is_none() && interface.is_none() {
-                            return Err(missing_if_or_value());
-                        }
-                    },
-                    RecordCmds::Modify{value, interface, ..} => {
-                        if value.is_none() && interface.is_none() {
-                            return Err(missing_if_or_value());
-                        }
-                    },
-                    _ => {}
-                }
-            },
-            _ => {}
-        };
+        if let Args::Record{cmd, ..} = &args {
+            match cmd {
+                RecordCmds::Add{value, interface, ..} => {
+                    if value.is_none() && interface.is_none() {
+                        return Err(missing_if_or_value());
+                    }
+                },
+                RecordCmds::Modify{value, interface, ..} => {
+                    if value.is_none() && interface.is_none() {
+                        return Err(missing_if_or_value());
+                    }
+                },
+                _ => {}
+            }
+        }
+
         Ok(args)
     }
 }

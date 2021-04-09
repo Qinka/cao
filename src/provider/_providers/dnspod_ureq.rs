@@ -1,8 +1,5 @@
 
 
-
-
-use ureq;
 use serde_json::Value;
 use crate::error::Error;
 
@@ -30,12 +27,12 @@ const DNSPOD_INFO_RECORD:   &str = "https://dnsapi.cn/Record.Info";
 
 
 pub fn add_record(
-    domain: &String,
-    key:    &String,
-    sub_domain: &String,
-    record_type: &String,
-    record_line: &String,
-    value:       &String
+    domain:      &str,
+    key:         &str,
+    sub_domain:  &str,
+    record_type: &str,
+    record_line: &str,
+    value:       &str,
 ) -> Result<Value, Error> {
 
     let record_line: (&str, &str) =
@@ -60,16 +57,16 @@ pub fn add_record(
 }
 
 pub fn list_record(
-    domain:     &String,
-    key:        &String,
-    offset:     Option<&String>,
-    length:     Option<&String>,
-    sub_domain: Option<&String>,
+    domain:     &str,
+    key:        &str,
+    offset:     Option<&str>,
+    length:     Option<&str>,
+    sub_domain: Option<&str>,
 ) -> Result<Value, Error> {
 
     let mut form = vec![
-        (CAO_FORM_TOKEN,  key.as_str()),
-        (CAO_FORM_DOMAIN, domain.as_str()),
+        (CAO_FORM_TOKEN,  key),
+        (CAO_FORM_DOMAIN, domain),
     ];
 
     if let Some(offset) = offset {
@@ -90,9 +87,9 @@ pub fn list_record(
 }
 
 pub fn info_record(
-    domain: &String,
-    key:    &String,
-    id:     &String,
+    domain: &str,
+    key:    &str,
+    id:     &str,
 ) -> Result<Value, Error> {
     Ok(ureq::post(DNSPOD_INFO_RECORD)
         .set(HTTP_HEADER_USER_AGENT, CAO_USER_AGENT)
@@ -106,13 +103,13 @@ pub fn info_record(
 }
 
 pub fn modify_record(
-    domain:     &String,
-    key:        &String,
-    id:         &String,
-    sub_domain: Option<&String>,
-    r_type:     &String,
-    r_line:     &String,
-    value:      &String,
+    domain:            &str,
+    key:               &str,
+    id:                &str,
+    sub_domain: Option<&str>,
+    r_type:            &str,
+    r_line:            &str,
+    value:             &str,
 ) -> Result<Value, Error>{
     let mut form: Vec<(&str, &str)> = vec![
         (CAO_FORM_TOKEN,  key),
@@ -138,9 +135,9 @@ pub fn modify_record(
     )
 }
 pub fn delete_record(
-    domain: &String,
-    key:    &String,
-    id:     &String,
+    domain: &str,
+    key:    &str,
+    id:     &str,
 ) -> Result<Value, Error> {
 
     Ok(ureq::post(DNSPOD_DELETE_RECORD)

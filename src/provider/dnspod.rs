@@ -23,15 +23,15 @@ impl DnsProvider for Provider {
         key:    String,
         domain: String,
     ) -> Result<Box<dyn DnsProvider>, Error> {
-        Ok(Box::new(Provider{key: key, domain: domain}))
+        Ok(Box::new(Provider{key, domain}))
     }
 
     fn add_record(
         &self,
-        sub_domain:  &String,
-        record_type: &String,
-        record_line: &String,
-        value:       &String,
+        sub_domain:  &str,
+        record_type: &str,
+        record_line: &str,
+        value:       &str,
     ) -> Result<i32, Error> {
         let result = intra::add_record(
             &self.domain,
@@ -66,15 +66,15 @@ impl DnsProvider for Provider {
         &self,
         offset:     Option<i32>,
         length:     Option<i32>,
-        sub_domain: Option<&String>,
+        sub_domain: Option<&str>,
     ) -> Result<Vec<Record>, Error> {
         let offset = offset.map(|i| i.to_string());
         let length = length.map(|i| i.to_string());
         let result = intra::list_record(
             &self.domain,
             &self.key,
-            offset.as_ref(),
-            length.as_ref(),
+            offset.as_deref(),
+            length.as_deref(),
             sub_domain,
         )?;
 
@@ -84,12 +84,12 @@ impl DnsProvider for Provider {
         if result["status"]["code"].is_string()
         && result["status"]["code"].as_str().unwrap().eq("1") {
             if let Value::Array(list) = &result["records"] {
-                Ok(list.into_iter().filter_map(|v| {
+                Ok(list.iter().filter_map(|v| {
                     let id = if let Value::String(id) = &v["id"] {
                             id.parse::<i32>().unwrap_or(-1)
                         } else { -2 };
                     Some(super::interface::Record{
-                        id: id,
+                        id,
                         sub_domain: String::from(v["name"].as_str()?),
                         value:  String::from(v["value"].as_str()?),
                         r_type: String::from(v["type"] .as_str()?),
@@ -110,10 +110,10 @@ impl DnsProvider for Provider {
     fn modify_record(
         &self,
         id:         i32,
-        sub_domain: Option<&String>,
-        r_type:     &String,
-        r_line:     &String,
-        value:      &String,
+        sub_domain: Option<&str>,
+        r_type:     &str,
+        r_line:     &str,
+        value:      &str,
     ) -> Result<(), Error>{
         let id = id.to_string();
 

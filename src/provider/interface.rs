@@ -27,25 +27,25 @@ pub trait DnsProvider {
 
     fn add_record(
         &self,
-        sub_domain:  &String,
-        record_type: &String,
-        record_line: &String,
-        value:       &String,
+        sub_domain:  &str,
+        record_type: &str,
+        record_line: &str,
+        value:       &str,
     ) -> Result<i32, Error>;
 
     fn list_record(
         &self,
         offset:     Option<i32>,
         length:     Option<i32>,
-        sub_domain: Option<&String>,
+        sub_domain: Option<&str>,
     ) -> Result<Vec<Record>, Error>;
 
     fn modify_record(
         &self, id: i32,
-        sub_domain: Option<&String>,
-        r_type: &String,
-        r_line: &String,
-        value:  &String,
+        sub_domain: Option<&str>,
+        r_type: &str,
+        r_line: &str,
+        value:  &str,
     ) -> Result<(), Error>;
 
     fn delete_record(
