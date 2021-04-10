@@ -4,6 +4,36 @@ use serde_json::Value;
 use super::interface::*;
 use crate::error::Error;
 
+mod intra_common {
+
+    pub const CAO_USER_AGENT:         &str = concat!("cao/", env!("CARGO_PKG_VERSION"),", Johann Li <me@qinka.pro>");
+    #[cfg(feature = "ureq")]
+    pub const HTTP_HEADER_USER_AGENT: &str = "User-Agent";
+
+    pub const CAO_FORM_TOKEN:    &str = "login_token";
+    pub const CAO_FORM_DOMAIN:   &str = "domain";
+    pub const CAO_FORM_SDOMAIN:  &str = "sub_domain";
+    pub const CAO_FORM_RID:      &str = "record_id";
+    pub const CAO_FORM_RTYPE:    &str = "record_type";
+    pub const CAO_FORM_VALUE:    &str = "value";
+    pub const CAO_FORM_RLINE:    &str = "record_line";
+    pub const CAO_FORM_RLINE_ID: &str = "record_line_id";
+    pub const CAO_FORM_OFFSET:   &str = "offset";
+    pub const CAO_FORM_LENGTH:   &str = "length";
+
+    #[cfg(feature = "curl")]
+    pub const CAO_FORM_FORMAT:   &str = "format";
+    #[cfg(feature = "curl")]
+    pub const FORMAT_JSON: &str = "json";
+
+    pub const DNSPOD_ADD_RECORD:    &str = "https://dnsapi.cn/Record.Create";
+    pub const DNSPOD_LIST_RECORDS:  &str = "https://dnsapi.cn/Record.List";
+    pub const DNSPOD_MODIFY_RECORD: &str = "https://dnsapi.cn/Record.Modify";
+    pub const DNSPOD_DELETE_RECORD: &str = "https://dnsapi.cn/Record.Remove";
+    pub const DNSPOD_INFO_RECORD:   &str = "https://dnsapi.cn/Record.Info";
+}
+
+
 #[cfg(feature = "curl")]
 #[path = "_providers/dnspod_curl.rs"]
 mod intra;
@@ -16,7 +46,6 @@ pub struct Provider {
     key:    String,
     domain: String,
 }
-
 
 impl DnsProvider for Provider {
     fn build_provider(

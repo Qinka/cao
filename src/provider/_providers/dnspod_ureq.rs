@@ -3,28 +3,7 @@
 use serde_json::Value;
 use crate::error::Error;
 
-
-const CAO_USER_AGENT:         &str = concat!("cao/", env!("CARGO_PKG_VERSION"),", Johann Li <me@qinka.pro>") ;
-const HTTP_HEADER_USER_AGENT: &str = "User-Agent";
-
-const CAO_FORM_TOKEN:    &str = "login_token";
-const CAO_FORM_DOMAIN:   &str = "domain";
-const CAO_FORM_SDOMAIN:  &str = "sub_domain";
-const CAO_FORM_RID:      &str = "record_id";
-const CAO_FORM_RTYPE:    &str = "record_type";
-const CAO_FORM_VALUE:    &str = "value";
-const CAO_FORM_RLINE:    &str = "record_line";
-const CAO_FORM_RLINE_ID: &str = "record_line_id";
-const CAO_FORM_OFFSET:   &str = "offset";
-const CAO_FORM_LENGTH:   &str = "length";
-
-
-const DNSPOD_ADD_RECORD:    &str = "https://dnsapi.cn/Record.Create";
-const DNSPOD_LIST_RECORDS:  &str = "https://dnsapi.cn/Record.List";
-const DNSPOD_MODIFY_RECORD: &str = "https://dnsapi.cn/Record.Modify";
-const DNSPOD_DELETE_RECORD: &str = "https://dnsapi.cn/Record.Remove";
-const DNSPOD_INFO_RECORD:   &str = "https://dnsapi.cn/Record.Info";
-
+use super::intra_common::*;
 
 pub fn add_record(
     domain:      &str,
@@ -95,8 +74,8 @@ pub fn info_record(
         .set(HTTP_HEADER_USER_AGENT, CAO_USER_AGENT)
         .send_form(&[
             (CAO_FORM_DOMAIN,  domain),
-            (CAO_FORM_TOKEN, key),
-            (CAO_FORM_RID,    id),
+            (CAO_FORM_TOKEN,   key),
+            (CAO_FORM_RID,     id),
         ])?
         .into_json()?
     )

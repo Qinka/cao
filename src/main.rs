@@ -3,6 +3,9 @@ mod provider;
 mod error;
 mod interface;
 
+#[cfg(all(feature = "ureq", feature = "curl"))]
+compile_error!("Features `ureq' and `curl' cannot be enabled at the same time.");
+
 use crate::args::{Args, RecordCmds};
 use crate::provider::build_dns_provider;
 use crate::error::Error;
@@ -34,7 +37,6 @@ fn main() -> Result<(), Error> {
                         sub_domain, record_type, record_line, value, interface
                     } => {
                         let value = interface_or_value(interface, value)?;
-                        eprintln!("value: {}", value);
                         let id = provider.add_record(
                             &sub_domain,
                             &record_type,
