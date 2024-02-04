@@ -1,6 +1,6 @@
 [package]
 name = "cao"
-version = "0.2.3"
+version = "0.2.5"
 authors = ["Johann Lee <me@qinka.pro>"]
 edition = "2018"
 license = "AGPL-3.0"

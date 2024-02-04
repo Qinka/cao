@@ -88,8 +88,7 @@ fn main() -> Result<(), Error> {
             }
             RecordCmds::Delete { record_id } => {
               provider.delete_record(record_id)?;
-            }
-            // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
+            } // _ => unimplemented!("Unimplemented option: {:?}", param.cmd),
           }
         }
         Args::Interface { interface } => {

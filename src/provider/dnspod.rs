@@ -331,18 +331,22 @@ impl DnsProvider for Provider {
   ) -> Result<u64> {
     //
     // Payload
-    let record_key = if record_line.chars().all(char::is_numeric) {
-      intra_common::CAO_FORM_RLINE_ID
-    } else {
-      intra_common::CAO_FORM_RLINE
-    };
+    let (record_line_key, record_line_value) =
+      if record_line.chars().all(char::is_numeric) {
+        (
+          intra_common::CAO_FORM_RLINE_ID,
+          json!(record_line.parse::<i32>()?),
+        )
+      } else {
+        (intra_common::CAO_FORM_RLINE, json!(record_line))
+      };
     let payload: Value = json!({
       intra_common::CAO_FORM_RID: record_id,
       intra_common::CAO_FORM_DOMAIN: &self.domain,
       intra_common::CAO_FORM_SDOMAIN: sub_domain,
       intra_common::CAO_FORM_RTYPE: record_type,
       intra_common::CAO_FORM_VALUE: value,
-      record_key: record_line,
+      record_line_key: record_line_value,
     });
 
     let result: Value = self.request("ModifyRecord", payload)?;
