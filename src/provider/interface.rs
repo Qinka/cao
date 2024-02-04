@@ -3,7 +3,7 @@ use crate::error::Error;
 
 #[derive(Debug, PartialEq)]
 pub struct Record {
-    pub id:         i32,
+    pub id:         u64,
     pub sub_domain: String,
     pub value:      String,
     pub r_type:     String,
@@ -18,12 +18,14 @@ impl std::fmt::Display for Record {
     }
 }
 
-pub trait DnsProvider {
+pub trait DnsProviderBuild: Sized {
     fn build_provider(
         key:    String,
         domain: String,
-    ) -> Result<Box<dyn DnsProvider>, Error>
-        where Self:Sized;
+    ) -> Result<Self, Error>;
+}
+
+pub trait DnsProvider {
 
     fn add_record(
         &self,
@@ -31,7 +33,7 @@ pub trait DnsProvider {
         record_type: &str,
         record_line: &str,
         value:       &str,
-    ) -> Result<i32, Error>;
+    ) -> Result<u64, Error>;
 
     fn list_record(
         &self,
@@ -41,15 +43,15 @@ pub trait DnsProvider {
     ) -> Result<Vec<Record>, Error>;
 
     fn modify_record(
-        &self, id: i32,
+        &self, id: u64,
         sub_domain: Option<&str>,
         r_type: &str,
         r_line: &str,
         value:  &str,
-    ) -> Result<(), Error>;
+    ) -> Result<u64, Error>;
 
     fn delete_record(
         &self,
-        id: i32,
+        id: u64,
     ) -> Result<(), Error>;
 }

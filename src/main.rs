@@ -22,7 +22,9 @@ fn fetch_key(file_name: String) -> Result<String, Error>  {
 }
 
 fn main() -> Result<(), Error> {
-    let args = Args::args();
+
+    tracing_subscriber::fmt::init();
+    let args = Args::get_args();
 
     match args {
         Err(err) => {
@@ -31,7 +33,7 @@ fn main() -> Result<(), Error> {
         Ok(param) => { match param {
             Args::Record{provider, key, domain, cmd} => {
                 let key = fetch_key(key)?;
-                let provider = build_dns_provider(provider, key, domain)?;
+                let provider = build_dns_provider(&provider, key, domain)?;
                 match cmd {
                     RecordCmds::Add{
                         sub_domain, record_type, record_line, value, interface

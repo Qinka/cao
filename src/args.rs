@@ -66,7 +66,7 @@ pub enum RecordCmds {
     Modify {
         /// Record ID
         #[structopt(short = "i", long = "id")]
-        record_id: i32,
+        record_id: u64,
         /// Subdomain
         #[structopt(short, long = "sub")]
         sub_domain: Option<String>,
@@ -87,7 +87,7 @@ pub enum RecordCmds {
     Delete {
         /// Record ID
         #[structopt(short = "i", long = "id")]
-        record_id: i32,
+        record_id: u64,
     },
 }
 
@@ -100,7 +100,7 @@ fn missing_if_or_value() -> clap::Error {
 }
 
 impl Args {
-    pub fn args() -> Result<Self, clap::Error> {
+    pub fn get_args() -> Result<Self, clap::Error> {
 
         let args = Self::from_args_safe()?;
 

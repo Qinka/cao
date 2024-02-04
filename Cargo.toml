@@ -1,6 +1,6 @@
 [package]
 name = "cao"
-version = "0.1.2"
+version = "0.2.1"
 authors = ["Johann Lee <me@qinka.pro>"]
 edition = "2018"
 license = "AGPL-3.0"
@@ -10,16 +10,24 @@ repository = "https://github.com/qinka/cao"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default     = ["dnspod", "ureq"]
+default     = ["dnspod"]
 dnspod = []
-curl_invailed_cert = ["curl"]
 
 [dependencies]
-curl = { version = "~0.4", optional = true}
-ureq = { version = "~2.9", features = ["json"], optional = true }
-structopt = "~0.3"
-serde_json = "~1.0"
-if-addrs = "~0.11"
+reqwest = { version = "0.11", features = ["json", "blocking", "rustls-tls"], default-features = false }
+structopt = "0.3"
+serde_json = "1.0"
+if-addrs = "0.11"
+serde = { version = "1.0", features = ["derive"] }
+anyhow = "1.0"
+chrono = "0.4.33"
+hmac = "0.12.1"
+sha2 = "0.10.8"
+digest = "0.10.7"
+hex = "0.4.3"
+env_logger = "0.11.1"
+tracing-subscriber = "0.3.18"
+tracing = "0.1.40"
 
 [dev-dependencies]
 trust-dns-resolver = "~0.23"

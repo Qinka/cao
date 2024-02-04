@@ -45,14 +45,14 @@ fn interface_ip(interface: String) -> Result<String, Error> {
     } else {
         list.next()
     };
-    nth.ok_or_else(|| Error::InterfaceFilterError(format!("No such interface: {}", interface)))
+    nth.ok_or_else(|| Error::Reason(format!("No such interface: {}", interface)))
 }
 
 pub fn interface_or_value(interface: Option<String>, value: Option<String>) -> Result<String, Error> {
     if let Some(value) = value {
         Ok(value)
     } else {
-        let interface = interface.ok_or(Error::MissingRequiredArgument)?;
+        let interface = interface.ok_or(Error::Reason(String::from("Missing argument")))?;
         interface_ip(interface)
     }
 }
