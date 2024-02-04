@@ -1,10 +1,9 @@
-
+use digest::{CtOutput, Digest};
+use hmac::Hmac;
+use hmac::Mac;
 use reqwest::header::HeaderMap;
 use serde::Serialize;
 use serde_json::{json, Value};
-use hmac::Mac;
-use hmac::Hmac;
-use digest::{Digest,CtOutput};
 use sha2::Sha256;
 use std::convert::TryInto;
 
@@ -39,7 +38,10 @@ mod intra_common {
 }
 
 #[inline]
-fn hmac_sha256_base(message: &[u8], key: &[u8]) -> Result<CtOutput<Hmac<Sha256>>> {
+fn hmac_sha256_base(
+  message: &[u8],
+  key: &[u8],
+) -> Result<CtOutput<Hmac<Sha256>>> {
   let mut mac = Hmac::<Sha256>::new_from_slice(key)?;
   mac.update(message);
   Ok(mac.finalize())
@@ -72,7 +74,13 @@ fn record_parse(record: &Value) -> Option<Record> {
   let value = String::from(record.get("Value")?.as_str()?);
   let r_type = String::from(record.get("Type")?.as_str()?);
   let r_line = String::from(record.get("Line")?.as_str()?);
-  Some(Record{id, sub_domain, value, r_type, r_line})
+  Some(Record {
+    id,
+    sub_domain,
+    value,
+    r_type,
+    r_line,
+  })
 }
 
 pub struct Provider {
@@ -116,7 +124,8 @@ impl Provider {
       intra_common::DNSPOD_SERVICE,
       intra_common::DNSPOD_REQUEST
     );
-    let hashed_canonical_request = hash_sha256_hex(canonical_request.as_bytes())?;
+    let hashed_canonical_request =
+      hash_sha256_hex(canonical_request.as_bytes())?;
     let string_to_sign = format!(
       "{}\n{}\n{}\n{}",
       intra_common::DNSPOD_ALGORITHM,
@@ -132,11 +141,10 @@ impl Provider {
     )?;
     let secret_service =
       hmac_sha256(intra_common::DNSPOD_SERVICE.as_bytes(), &secret_date)?;
-    let secret_signing = hmac_sha256(
-      intra_common::DNSPOD_REQUEST.as_bytes(),
-      &secret_service,
-    )?;
-    let signature = hmac_sha256_hex(string_to_sign.as_bytes(), &secret_signing)?;
+    let secret_signing =
+      hmac_sha256(intra_common::DNSPOD_REQUEST.as_bytes(), &secret_service)?;
+    let signature =
+      hmac_sha256_hex(string_to_sign.as_bytes(), &secret_signing)?;
     tracing::debug!("STRING_TO_SIGN: {}", string_to_sign);
 
     // step 4
@@ -225,17 +233,21 @@ impl DnsProvider for Provider {
     //
     // Build request
     // payload
-    let record_key = if record_line.chars().all(char::is_numeric) {
-      intra_common::CAO_FORM_RLINE_ID
-    } else {
-      intra_common::CAO_FORM_RLINE
-    };
+    let (record_line_key, record_line_value) =
+      if record_line.chars().all(char::is_numeric) {
+        (
+          intra_common::CAO_FORM_RLINE_ID,
+          json!(record_line.parse::<i32>()?),
+        )
+      } else {
+        (intra_common::CAO_FORM_RLINE, json!(record_line))
+      };
     let payload = json!({
         intra_common::CAO_FORM_DOMAIN: &self.domain,
         intra_common::CAO_FORM_SDOMAIN: sub_domain,
         intra_common::CAO_FORM_RTYPE: record_type,
         intra_common::CAO_FORM_VALUE: value,
-        record_key: record_line,
+        record_line_key: record_line_value,
     });
 
     let result: Value = self.request("CreateRecord", payload)?;
@@ -253,10 +265,7 @@ impl DnsProvider for Provider {
           &result
         )))
       } else {
-        Err(Error::http_failed(format!(
-          "Request failed {:?}",
-          &result
-        )))
+        Err(Error::http_failed(format!("Request failed {:?}", &result)))
       }
     } else {
       Err(Error::http_failed(format!(
@@ -272,7 +281,6 @@ impl DnsProvider for Provider {
     length: Option<i32>,
     sub_domain: Option<&str>,
   ) -> Result<Vec<Record>> {
-
     //
     // payload
     let payload = {
@@ -303,10 +311,7 @@ impl DnsProvider for Provider {
       if let Some(Value::Array(list)) = response.get("RecordList") {
         Ok(list.iter().filter_map(record_parse).collect())
       } else {
-        Err(Error::http_failed(format!(
-          "Request failed {:?}",
-          &result
-        )))
+        Err(Error::http_failed(format!("Request failed {:?}", &result)))
       }
     } else {
       Err(Error::http_failed(format!(
@@ -324,7 +329,6 @@ impl DnsProvider for Provider {
     record_line: &str,
     value: &str,
   ) -> Result<u64> {
-
     //
     // Payload
     let record_key = if record_line.chars().all(char::is_numeric) {
@@ -356,10 +360,7 @@ impl DnsProvider for Provider {
           &result
         )))
       } else {
-        Err(Error::http_failed(format!(
-          "Request failed {:?}",
-          &result
-        )))
+        Err(Error::http_failed(format!("Request failed {:?}", &result)))
       }
     } else {
       Err(Error::http_failed(format!(
@@ -370,29 +371,27 @@ impl DnsProvider for Provider {
   }
 
   fn delete_record(&self, id: u64) -> Result<()> {
-
     let payload = json!({
-      intra_common::CAO_FORM_DOMAIN: &self.domain,
-      intra_common::CAO_FORM_RID: id,
-  });
+        intra_common::CAO_FORM_DOMAIN: &self.domain,
+        intra_common::CAO_FORM_RID: id,
+    });
 
+    let result: Value = self.request("DeleteRecord", payload)?;
 
-  let result: Value = self.request("DeleteRecord", payload)?;
+    //
+    // Result process
+    #[cfg(debug_assertions)]
+    eprintln!("{}", serde_json::to_string_pretty(&result)?);
 
-  //
-  // Result process
-  #[cfg(debug_assertions)]
-  eprintln!("{}", serde_json::to_string_pretty(&result)?);
-
-  // response processing
-  if result.get("Response").is_some() {
-    Ok(())
-  } else {
-    Err(Error::http_failed(format!(
-      "Failed to parse result {:?}",
-      &result
-    )))
-  }
+    // response processing
+    if result.get("Response").is_some() {
+      Ok(())
+    } else {
+      Err(Error::http_failed(format!(
+        "Failed to parse result {:?}",
+        &result
+      )))
+    }
   }
 }
 
@@ -400,7 +399,7 @@ impl DnsProvider for Provider {
 mod test {
   use super::Provider;
   use crate::provider::interface::DnsProviderBuild;
-use crate::provider::interface::{DnsProvider, Record};
+  use crate::provider::interface::{DnsProvider, Record};
   use trust_dns_resolver::config::*;
   use trust_dns_resolver::Resolver;
 
@@ -427,7 +426,7 @@ use crate::provider::interface::{DnsProvider, Record};
     let mut resolver_config = ResolverConfig::new();
     resolver_config.add_name_server(NameServerConfig {
       socket_addr: "119.29.29.29:53".parse().unwrap(),
-      bind_addr:  None,
+      bind_addr: None,
       protocol: Protocol::Udp,
       tls_dns_name: None,
       trust_negative_responses: true,
@@ -442,7 +441,8 @@ use crate::provider::interface::{DnsProvider, Record};
       var("DNSPOD_TEST_TOKEN")
         .expect("Need environment variable: DNSPOD_TEST_TOKEN"),
       domain.clone(),
-    ).unwrap();
+    )
+    .unwrap();
 
     sleep(sleep_time);
 
